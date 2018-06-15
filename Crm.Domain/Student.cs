@@ -11,18 +11,14 @@ namespace Crm.Domain
         public virtual string FirstName { get; set; }
         public virtual string LastName { get; set; }
 
-        //private readonly List<Enrollment> _enrollments = new List<Enrollment>();
-        //public virtual IReadOnlyList<Enrollment> Enrollments => _enrollments.ToList();
+        public virtual Address Address { get; set; }
 
-        //public void AddEnrollment(string course, string grade)
-        //{
-        //    var enrollment = new Enrollment
-        //    {
-        //        Course = course,
-        //        Student = this,
-        //        Grade = grade
-        //    };
-        //    _enrollments.Add(enrollment);
-        //}
+        private readonly IList<Guid> _badgeIds = new List<Guid>();
+        public virtual IReadOnlyList<Guid> BadgeIds => _badgeIds.ToList();
+
+        public virtual void AddBadge(Badge badge)
+        {
+            _badgeIds.Add(badge.Id);
+        }
     }
 }

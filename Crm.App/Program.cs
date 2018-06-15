@@ -4,6 +4,7 @@ using Crm.Infrastructure;
 using FluentNHibernate.Cfg;
 using FluentNHibernate.Cfg.Db;
 using NHibernate;
+using NHibernate.Tool.hbm2ddl;
 
 namespace Crm.App
 {
@@ -17,13 +18,30 @@ namespace Crm.App
             {
                 using (var transaction = session.BeginTransaction())
                 {
-                    var daisy = new Student { FirstName = "Daisy", LastName = "Harrison" };
-                    var jack = new Student { FirstName = "Jack", LastName = "Torrance" };
-                    //var sue = new Student { FirstName = "Sue", LastName = "Walkters" };
-                    //var bill = new Student { FirstName = "Bill", LastName = "Taft" };
-                    //var joan = new Student { FirstName = "Joan", LastName = "Pope" };
+                    var badge1 = new Badge
+                    {
+                        Title = "A1",
+                        Detail = "Detail 1"
+                    };
 
-                    // save both stores, this saves everything else via cascading
+                    var badge2 = new Badge
+                    {
+                        Title = "A2",
+                        Detail = "Detail 2"
+                    };
+
+                    session.SaveOrUpdate(badge1);
+                    session.SaveOrUpdate(badge2);
+
+                    var address = new Address("rue test", "Lyon", "France");
+                    var daisy = new Student { FirstName = "Daisy", LastName = "Harrison", Address = address};
+                    var jack = new Student { FirstName = "Jack", LastName = "Torrance", Address = address};
+
+                    daisy.AddBadge(badge1);
+                    daisy.AddBadge(badge2);
+
+                    jack.AddBadge(badge2);
+
                     session.SaveOrUpdate(daisy);
                     session.SaveOrUpdate(jack);
 
@@ -47,14 +65,20 @@ namespace Crm.App
 
         private static ISessionFactory CreateSessionFactory()
         {
-            return Fluently.Configure()
+            var configuration = Fluently.Configure()
                 .Database(
                     SQLiteConfiguration.Standard
                         .UsingFile("firstProject.db")
                 )
                 .Mappings(m =>
                     m.FluentMappings.AddFromAssemblyOf<StudentMap>())
-                .BuildSessionFactory();
+                .BuildConfiguration();
+
+            // Create tables
+            var exporter = new SchemaExport(configuration);
+            exporter.Execute(true, true, false);
+
+            return configuration.BuildSessionFactory();
         }
     }
 }
